@@ -1,1 +1,1 @@
-# Aplicacion_teoria_de_grafos_sudokus
+# Aplicacion teoria de grafos mediante sudokus
