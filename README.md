@@ -1,5 +1,7 @@
 # Resolución de Sudokus mediante teoría de grafos
 
+<p align="center"><img src="docs/portada.png" width="900" alt="Sudokus como problema de grafos: tablero resuelto y grafo de 81 nodos"></p>
+
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3-3776AB?style=flat-square&logo=python&logoColor=white">
   <img src="https://img.shields.io/badge/NetworkX-grafos-0EA5E9?style=flat-square">

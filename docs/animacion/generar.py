@@ -545,9 +545,70 @@ def gif(mp4, ini, fin, salida, ancho=720, fps=12):
                     "[b][p]paletteuse=dither=sierra2_4a:diff_mode=rectangle", str(salida)], check=True)
 
 
+def portada_png(orden, final, aristas, llamadas):
+    """Imagen de portada del README (1600 × 640): tablero resuelto + el grafo de 81 nodos coloreado."""
+    PW, PH = 1600, 640
+    im = Image.new("RGB", (PW * S, PH * S), FONDO)
+    # resplandor suave detrás del grafo
+    halo = Image.new("L", im.size, 0)
+    ImageDraw.Draw(halo).ellipse(P(1300 - 300, 320 - 300) + P(1300 + 300, 320 + 300), fill=70)
+    halo = halo.filter(ImageFilter.GaussianBlur(90 * S))
+    im = Image.composite(Image.new("RGB", im.size, (40, 52, 110)), im, halo)
+    capa = Image.new("RGBA", im.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(capa)
+    cx, cy, rr = 1300, 320, 236
+
+    def pos(i):
+        ang = -math.pi / 2 + i * 2 * math.pi / 81
+        return cx + rr * math.cos(ang), cy + rr * math.sin(ang)
+
+    color = {r * 9 + c: COLORES[final[r][c]] for r in range(9) for c in range(9)}
+    for a, b in aristas:
+        ca, cb = color[a], color[b]
+        d.line(P(*pos(a)) + P(*pos(b)), fill=mezcla(ca, cb, 0.5) + (62,), width=S)
+    im = Image.alpha_composite(im.convert("RGBA"), capa)
+    d = ImageDraw.Draw(im)
+    for i in range(81):
+        x, y = pos(i)
+        circulo(d, x, y, 8.5, color[i], FONDO, 2)
+    texto(d, (cx, cy - 14), "81 nodos", F_TIT, TEXTO, "mm")
+    texto(d, (cx, cy + 22), "810 aristas", F_SUB, TENUE, "mm")
+    # tablero resuelto
+    pistas = {(x, y) for _, x, y in PISTAS_COLOR}
+    bx, by, cel = 700, 150, 38
+    d.rounded_rectangle(P(bx - 10, by - 10) + P(bx + 9 * cel + 10, by + 9 * cel + 10), 14 * S, fill=PANEL)
+    f_dig = fuente("segoeuib.ttf", 20)
+    for r in range(9):
+        for c in range(9):
+            v_ = final[r][c]
+            x, y = bx + c * cel + cel / 2, by + r * cel + cel / 2
+            if (r, c) not in pistas:
+                d.rounded_rectangle(P(x - 16, y - 16) + P(x + 16, y + 16), 6 * S, fill=mezcla(PANEL, COLORES[v_], 0.22))
+            texto(d, (x, y), str(v_), f_dig, TEXTO if (r, c) in pistas else COLORES[v_], "mm")
+    for i in range(10):
+        ancho = 3 if i % 3 == 0 else 1
+        col = (92, 110, 144) if i % 3 == 0 else LINEA
+        d.line(P(bx + i * cel, by) + P(bx + i * cel, by + 9 * cel), fill=col, width=ancho * S)
+        d.line(P(bx, by + i * cel) + P(bx + 9 * cel, by + i * cel), fill=col, width=ancho * S)
+    # texto
+    f_mega = fuente("segoeuib.ttf", 54)
+    texto(d, (80, 196), "Sudokus como", f_mega, TEXTO)
+    texto(d, (80, 268), "problema de grafos", f_mega, TEXTO)
+    texto(d, (84, 360), "Emparejamientos y teorema de Berge · Coloración DSatur", F_SUB, (245, 158, 11))
+    for i, (et, val) in enumerate((("métodos", "2"), ("llamadas de propagación", str(llamadas)), ("nodos coloreados", str(len(orden))))):
+        x = 84 + i * 168
+        d.rounded_rectangle(P(x, 420) + P(x + 152, 490), 10 * S, fill=PANEL, outline=LINEA, width=S)
+        texto(d, (x + 14, 436), et, fuente("segoeui.ttf", 12), TENUE)
+        texto(d, (x + 14, 456), val, fuente("segoeuib.ttf", 18), TEXTO)
+    im.convert("RGB").resize((PW, PH), Image.LANCZOS).save(DOCS / "portada.png")
+
+
 def main():
     grid, inicial, pasos, sol_m, llamadas = correr_emparejamiento()
     orden, sol_c, aristas = correr_coloracion()
+    portada_png(orden, sol_c, aristas, llamadas)
+    if "--portada" in sys.argv:
+        return
     print(f"Emparejamiento: {llamadas} llamadas, {sum(p['antes'] != p['despues'] for p in pasos)} con cambios | "
           f"Coloración: {len(orden)} nodos, {len(aristas)} aristas | ambas soluciones válidas")
     mp4 = DOCS / "sudoku_grafos.mp4"
