@@ -13,7 +13,7 @@
 <p align="center"><img src="docs/coloracion.gif" width="760" alt="Coloración del grafo del Sudoku con DSatur"></p>
 
 <p align="center">
-  <a href="docs/sudoku_grafos.mp4"><b>▶ Ver el video completo (62 s)</b></a> ·
+  <a href="docs/sudoku_grafos.mp4"><b>▶ Ver el video completo (59 s)</b></a> ·
   <a href="G04.pdf">Informe (PDF)</a> ·
   <a href="G04-poster.pdf">Póster</a> ·
   <a href="G04-presentación.pdf">Presentación</a>
@@ -29,9 +29,9 @@ los resultados:
 | **Búsqueda** | Ninguna: propagación de restricciones hasta un punto fijo | Voraz: elige siempre el nodo más restringido |
 | **En la animación** | `sudoku_3.txt`, 26 pistas, resuelto en 139 llamadas | Sudoku clásico de 30 pistas, 51 nodos coloreados |
 
-Las animaciones no son una recreación: se generan **ejecutando el código de este repositorio** y registrando cada
-paso desde fuera, sin tocar los algoritmos (ver [`docs/animacion/generar.py`](docs/animacion/generar.py)). Al final,
-el script verifica que las dos soluciones sean válidas.
+Las animaciones no son una recreación: [`docs/video/exportar.py`](docs/video/exportar.py) **ejecuta el código de este
+repositorio**, registra cada paso desde fuera sin tocar los algoritmos y verifica que las dos soluciones sean válidas.
+Con esos pasos reales, el video se arma en [Remotion](https://www.remotion.dev/) (React), en [`docs/video/`](docs/video/).
 
 ---
 
@@ -111,11 +111,16 @@ python Functions.py
 
 Formato de `sudoku_3.txt`: 9 líneas de 9 números separados por espacios, con `0` en las casillas vacías.
 
-Para regenerar el video, los GIF y las imágenes:
+Para regenerar el video y la portada:
 
 ```bash
 pip install networkx numpy pillow imageio-ffmpeg
-python docs/animacion/generar.py
+python docs/video/exportar.py            # corre los dos algoritmos y guarda cada paso en docs/video/src/datos.json
+cd docs/video
+npm install
+npx remotion studio                      # vista previa interactiva
+npx remotion render Sudoku ../sudoku_grafos.mp4
+npx remotion still PortadaBanner ../portada.png
 ```
 
 ## Estructura
@@ -128,7 +133,9 @@ Coloracion/
   Sudoku.py              tablero n² × n² y verificación
   Functions.py           Sudoku → grafo, DSatur modificado, grafo → Sudoku
 docs/                    video, GIF e imágenes del README
-  animacion/generar.py   genera todo lo anterior a partir de la ejecución real
+  video/                 proyecto Remotion del video y la portada
+  video/exportar.py      registra los pasos reales de los dos algoritmos
+  animacion/generar.py   registro de pasos y verificación de las soluciones (lo usa exportar.py)
 G04.pdf                  informe
 G04-poster.pdf           póster
 G04-presentación.pdf     presentación
